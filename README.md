@@ -253,6 +253,10 @@ Citation metadata are provided in `CITATION.cff`. HydroSoftware v1.0.0 is perman
 Users should cite both the software release and the accompanying publication
 when applicable.
 
+## Disclaimer
+
+HydroSoftware is intended for research, education, and scientific modelling. Users are responsible for assessing the suitability of the software, model configurations, input data, and resulting simulations for their specific applications. The software is provided without warranty; see the Apache License 2.0 for the applicable terms and limitations of liability.
+
 ## License
 
 HydroSoftware is released under the Apache License 2.0. External data products
