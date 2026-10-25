@@ -7,5 +7,7 @@ authors:
     given-names: "A. V. D. P."
 version: 1.0.0
 date-released: "2026-10-25"
+doi: 10.5281/zenodo.23646680
 repository-code: "https://github.com/avadombi/HydroSoftware"
+date-released: "2026-10-25"
 license: Apache-2.0
