@@ -249,8 +249,7 @@ successful.
 
 ## Citation
 
-Citation metadata are provided in `CITATION.cff`. A DOI for the archived
-HydroSoftware v1.0.0 release will be associated with the public software release.
+Citation metadata are provided in `CITATION.cff`. HydroSoftware v1.0.0 is permanently archived on Zenodo (doi:10.5281/zenodo.23646680). Users should cite both the software release and the accompanying publication when applicable.
 Users should cite both the software release and the accompanying publication
 when applicable.
 
