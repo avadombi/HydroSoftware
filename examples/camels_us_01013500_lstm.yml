@@ -1,0 +1,113 @@
+schema_version: "1.20"
+experiment_id: camels-us-01013500-lstm
+name: CAMELS-US 01013500 — causal LSTM reference
+description: >-
+  Leakage-safe same-time daily LSTM reference for Fish River near Fort Kent,
+  Maine. The experiment shares the immutable data source and scored
+  calibration-validation-test dates of the EXP-HYDRO baseline. One initial
+  water year is used only as causal recurrent context.
+
+data:
+  kind: csv
+  path: examples/data/camels_us/01013500.csv
+  delimiter: ","
+  encoding: utf-8-sig
+  expected_sha256: f91a50e1a21bee952a7439117213422fd25244de623a0d280eb83ef3c6cd89b0
+  columns:
+    timestamp: date
+    precipitation: prcp(mm/day)
+    temperature: tmean(C)
+    potential_evapotranspiration: PET
+    streamflow: flow(mm)
+    additional_predictors:
+      - name: day_length
+        column: dayl(day)
+        unit: day
+        missing: error
+      - name: solar_radiation
+        column: srad(W/m2)
+        unit: W/m2
+        missing: error
+      - name: vapor_pressure
+        column: vp(Pa)
+        unit: Pa
+        missing: error
+  processing:
+    units:
+      precipitation: mm/day
+      temperature: degC
+      potential_evapotranspiration: mm/day
+      streamflow: mm/day
+      basin_area_km2: null
+    missing:
+      precipitation: error
+      temperature: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+      maximum_interpolation_gap: 3
+      text_tokens: ["", "NA", "N/A", "NaN", "null"]
+      numeric_sentinels: []
+    negative:
+      precipitation: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+    timestamps:
+      expected_step: daily
+      require_timestamp: true
+
+model:
+  model_id: lstm.tensorflow_stacked_s2s.v3
+  feature_roles:
+    - precipitation
+    - temperature
+    - potential_evapotranspiration
+  lagged_features: []
+  lookback: 1095
+  s2s_warmup: 365
+  recurrent_units: 16
+  recurrent_layers: [16]
+  gradient_clip_norm: 5.0
+  output_activation: softplus
+  input_transform: standardize_training_only
+  target_transform: standardize_training_only
+
+task:
+  task_type: training
+  period:
+    start_index: 274
+    train_end_index: 5752
+    validation_end_index: 7579
+    test_end_index: 12692
+  target_role: streamflow
+  lead_steps: 0
+  stride: 1
+  objective:
+    objective_id: nash_sutcliffe_efficiency
+  training:
+    optimizer_id: adam.tensorflow.v1
+    epochs: 300
+    batch_size: 64
+    learning_rate: 0.01
+    patience: 50
+    minimum_delta: 0.000001
+    seed: 20260811
+    shuffle: true
+  ensemble:
+    enabled: false
+    members: 5
+    aggregation: arithmetic_mean
+    lower_quantile: 0.1
+    upper_quantile: 0.9
+
+metadata:
+  basin_id: "01013500"
+  basin_name: Fish River near Fort Kent, Maine
+  data_family: CAMELS-US v1.2 time series using Daymet forcing and USGS discharge
+  source_period: 1980-01-01 through 2014-12-31
+  usable_period: 1980-10-01 through 2014-09-30
+  partition_basis: Same scored water-year partitions as the EXP-HYDRO reference
+  temporal_semantics: Same-time causal S2S; Q at day t may use forcings through day t only
+  recurrent_context: Three-year blocks with 365 masked antecedent days and unique scored dates
+  predictor_basis: P, T, and PET only, matching the common HydroSoftware forcing set
+  selection_rule: Five initializations; reference chosen only by validation NSE
+  intended_use: Neural reference for the bundled HydroSoftware demonstration

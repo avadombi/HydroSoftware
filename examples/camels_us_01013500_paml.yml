@@ -1,0 +1,86 @@
+schema_version: "1.21"
+experiment_id: camels-us-01013500-paml
+name: CAMELS-US 01013500 — PaML P-RNN + causal CNN
+description: >-
+  Daily physics-aware rainfall-runoff model for Fish River near Fort Kent,
+  Maine. The selected differentiable hydrological model and causal convolutional
+  layers are trained jointly using chronological training and validation periods.
+
+data:
+  kind: csv
+  path: examples/data/camels_us/01013500.csv
+  delimiter: ","
+  encoding: utf-8-sig
+  expected_sha256: f91a50e1a21bee952a7439117213422fd25244de623a0d280eb83ef3c6cd89b0
+  columns:
+    timestamp: date
+    precipitation: prcp(mm/day)
+    temperature: tmean(C)
+    potential_evapotranspiration: PET
+    streamflow: flow(mm)
+    additional_predictors: []
+  processing:
+    units:
+      precipitation: mm/day
+      temperature: degC
+      potential_evapotranspiration: mm/day
+      streamflow: mm/day
+      basin_area_km2: null
+    missing:
+      precipitation: error
+      temperature: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+      maximum_interpolation_gap: 3
+      text_tokens: ["", "NA", "N/A", "NaN", "null"]
+      numeric_sentinels: []
+    negative:
+      precipitation: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+    timestamps:
+      expected_step: daily
+      require_timestamp: true
+
+model:
+  model_id: paml.tensorflow_prnn_cnn_s2s.v1
+  physical_model:
+    model_id: exp_hydro.mass_conservative.v1
+  cnn_filters: 8
+  cnn_kernel_size: 10
+  training_strategy: joint_end_to_end
+  enforce_nonnegative_output: true
+
+task:
+  task_type: paml_training
+  period:
+    start_index: 274
+    train_end_index: 5752
+    validation_end_index: 7579
+    test_end_index: 12692
+  target_role: streamflow
+  lead_steps: 0
+  stride: 1
+  objective:
+    objective_id: nash_sutcliffe_efficiency
+  warmup_steps: 365
+  training:
+    optimizer_id: adam.tensorflow.v1
+    epochs: 300
+    batch_size: 64
+    learning_rate: 0.01
+    patience: 50
+    minimum_delta: 0.000001
+    gradient_clip_norm: 5.0
+    seed: 42
+    shuffle: false
+
+metadata:
+  basin_id: "01013500"
+  basin_name: Fish River near Fort Kent, Maine
+  data_family: CAMELS-US v1.2 time series using Daymet forcing and USGS discharge
+  source_period: 1980-01-01 through 2014-12-31
+  usable_period: 1980-10-01 through 2014-09-30
+  physical_backbone: EXP-HYDRO P-RNN
+  predictor_basis: P, T, and PET
+  intended_use: PaML example for the bundled HydroSoftware demonstration

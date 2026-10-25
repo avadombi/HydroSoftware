@@ -1,0 +1,132 @@
+schema_version: "1.21"
+experiment_id: camels-us-01013500-deepdiscover
+name: CAMELS-US 01013500 — controlled single-DU DeepDiscover
+description: >-
+  Leakage-safe same-time daily DeepDiscover reference for Fish River near Fort
+  Kent, Maine. The DiscoverUnit dimensions follow the supplied historical
+  notebook (eight hidden units and one discovered process), while the executable
+  HydroSoftware variant enforces one unambiguous conservative interval balance.
+
+data:
+  kind: csv
+  path: examples/data/camels_us/01013500.csv
+  delimiter: ","
+  encoding: utf-8-sig
+  expected_sha256: f91a50e1a21bee952a7439117213422fd25244de623a0d280eb83ef3c6cd89b0
+  columns:
+    timestamp: date
+    precipitation: prcp(mm/day)
+    temperature: tmean(C)
+    potential_evapotranspiration: PET
+    streamflow: flow(mm)
+    additional_predictors:
+      - name: day_length
+        column: dayl(day)
+        unit: day
+        missing: error
+      - name: solar_radiation
+        column: srad(W/m2)
+        unit: W/m2
+        missing: error
+      - name: vapor_pressure
+        column: vp(Pa)
+        unit: Pa
+        missing: error
+  processing:
+    units:
+      precipitation: mm/day
+      temperature: degC
+      potential_evapotranspiration: mm/day
+      streamflow: mm/day
+      basin_area_km2: null
+    missing:
+      precipitation: error
+      temperature: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+      maximum_interpolation_gap: 3
+      text_tokens: ["", "NA", "N/A", "NaN", "null"]
+      numeric_sentinels: []
+    negative:
+      precipitation: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+    timestamps:
+      expected_step: daily
+      require_timestamp: true
+
+model:
+  model_id: deepdiscover.numpy_instantaneous_s2s.v1
+  snow:
+    module_id: snow.degree_day.smooth.v1
+    snowfall_temperature: -1.5
+    melt_temperature: 1.5
+    degree_day_factor: 2.5
+    sharpness: 5.0
+    calibration:
+      snowfall_temperature:
+        mode: calibrate
+        lower_bound: -3.0
+        upper_bound: 0.0
+      melt_temperature:
+        mode: calibrate
+        lower_bound: 0.0
+        upper_bound: 3.0
+      degree_day_factor:
+        mode: calibrate
+        lower_bound: 0.0
+        upper_bound: 5.0
+      sharpness:
+        mode: fixed
+        lower_bound: 0.5
+        upper_bound: 20.0
+  initial_state: [0.0, 0.0]
+  process_count: 1
+  hidden_units: 8
+  train_input_switches: false
+  train_process_switches: false
+  input_transform: standardize_training_only
+  loss:
+    decorrelation_weight: 0.0
+    mass_balance_weight: 0.0
+    smoothness_weight: 0.01
+    smoothness_threshold: 0.1
+    binary_weight: 0.0
+    sparsity_weight: 0.0
+    target_process_correlation: 0.0
+
+task:
+  task_type: discovery_training
+  period:
+    start_index: 274
+    train_end_index: 5752
+    validation_end_index: 7579
+    test_end_index: 12692
+  target_role: streamflow
+  warmup_steps: 365
+  objective:
+    objective_id: nash_sutcliffe_efficiency
+  training:
+    optimizer_id: adam.numpy.full_sequence.v1
+    epochs: 600
+    learning_rate: 0.01
+    patience: 75
+    minimum_delta: 0.000001
+    gradient_clip_norm: 5.0
+    seed: 200
+
+metadata:
+  basin_id: "01013500"
+  basin_name: Fish River near Fort Kent, Maine
+  data_family: CAMELS-US v1.2 time series using Daymet forcing and USGS discharge
+  source_period: 1980-01-01 through 2014-12-31
+  usable_period: 1980-10-01 through 2014-09-30
+  partition_basis: Same scored water-year partitions as EXP-HYDRO, LSTM, and PaML
+  temporal_semantics: Same-time causal S2S; Q at day t may use forcings through day t only
+  recurrent_context: One continuous trajectory with the first 365 days masked as state warm-up
+  historical_architecture_basis: Supplied deep_discover_demo.ipynb, physical model_type, units=(8, 1)
+  snow_protocol: Smooth degree-day partition and melt; three historical parameters calibrated, sharpness fixed at 5
+  implementation_relationship: Corrected instantaneous conservative variant; numerical equivalence with historical Keras weights is not claimed
+  optimization_budget: 600 epochs after a 300-epoch validation-only pilot was still improving at its final epoch
+  selection_rule: Five conventional initializations; reference chosen only by validation NSE
+  intended_use: DeepDiscover reference for the bundled HydroSoftware demonstration

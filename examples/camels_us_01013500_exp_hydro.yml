@@ -1,0 +1,110 @@
+schema_version: "1.20"
+experiment_id: camels-us-01013500-exp-hydro
+name: CAMELS-US 01013500 — EXP-HYDRO baseline
+description: >-
+  Reproducible real-basin baseline for Fish River near Fort Kent, Maine. The
+  protocol preserves continuous model states across one warm-up, calibration,
+  validation, and held-out test sequence.
+
+data:
+  kind: csv
+  path: examples/data/camels_us/01013500.csv
+  delimiter: ","
+  encoding: utf-8-sig
+  expected_sha256: f91a50e1a21bee952a7439117213422fd25244de623a0d280eb83ef3c6cd89b0
+  columns:
+    timestamp: date
+    precipitation: prcp(mm/day)
+    temperature: tmean(C)
+    potential_evapotranspiration: PET
+    streamflow: flow(mm)
+    additional_predictors:
+      - name: day_length
+        column: dayl(day)
+        unit: day
+        missing: error
+      - name: solar_radiation
+        column: srad(W/m2)
+        unit: W/m2
+        missing: error
+      - name: vapor_pressure
+        column: vp(Pa)
+        unit: Pa
+        missing: error
+  processing:
+    units:
+      precipitation: mm/day
+      temperature: degC
+      potential_evapotranspiration: mm/day
+      streamflow: mm/day
+      basin_area_km2: null
+    missing:
+      precipitation: error
+      temperature: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+      maximum_interpolation_gap: 3
+      text_tokens: ["", "NA", "N/A", "NaN", "null"]
+      numeric_sentinels: []
+    negative:
+      precipitation: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+    timestamps:
+      expected_step: daily
+      require_timestamp: true
+
+model:
+  model_id: exp_hydro.mass_conservative.v1
+  snow:
+    module_id: snow.degree_day.hard.v1
+    snowfall_temperature: -1.5
+    melt_temperature: 1.5
+    degree_day_factor: 2.5
+    calibration:
+      snowfall_temperature:
+        mode: calibrate
+        lower_bound: -3.0
+        upper_bound: 0.0
+      melt_temperature:
+        mode: calibrate
+        lower_bound: 0.0
+        upper_bound: 3.0
+      degree_day_factor:
+        mode: calibrate
+        lower_bound: 0.0
+        upper_bound: 5.0
+  initial_state: [0.0, 0.0]
+  substeps: 4
+
+task:
+  task_type: calibration
+  period:
+    protocol: calibration_validation_test
+    start_index: 274
+    calibration_end_index: 5752
+    validation_end_index: 7579
+    test_end_index: 12692
+    warmup_steps: 365
+  objective:
+    objective_id: nash_sutcliffe_efficiency
+  search:
+    algorithm_id: differential_evolution.rand1bin.v1
+    generations: 100
+    population_size: 60
+    mutation_factor: 0.8
+    crossover_probability: 0.9
+    seed: 20260801
+    include_defaults: true
+    continue_on_candidate_error: true
+
+metadata:
+  basin_id: "01013500"
+  basin_name: Fish River near Fort Kent, Maine
+  data_family: CAMELS-US v1.2 time series using Daymet forcing and USGS discharge
+  source_period: 1980-01-01 through 2014-12-31
+  usable_period: 1980-10-01 through 2014-09-30
+  partition_basis: Water years with one initial water-year warm-up
+  missing_flow_rule: Negative converted USGS sentinel values are excluded, never imputed
+  pet_method: Hamon formulation reproduced from the historical project source
+  intended_use: Detailed real-basin case for HydroSoftware verification and evaluation

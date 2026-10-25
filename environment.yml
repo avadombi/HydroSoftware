@@ -1,0 +1,16 @@
+name: hydrosoftware
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - numpy>=1.26
+  - pydantic>=2.8,<3
+  - pyyaml>=6,<7
+  - fastapi>=0.115,<1
+  - uvicorn>=0.30,<1
+  - httpx>=0.27,<1
+  - pip:
+      - tensorflow==2.21.0
+      - httpx2>=2,<3
+      - -e .

@@ -1,0 +1,25 @@
+{
+  "record_type": "hydrosoftware.release-manifest",
+  "record_version": "1.0",
+  "software_version": "1.0.0",
+  "release_state": "stable",
+  "scientific_scope": {
+    "conceptual_models": ["EXP-HYDRO", "HBV"],
+    "neural_models": ["MLP", "LSTM", "GRU", "CNN-1D"],
+    "hybrid_model": "PaML with selectable EXP-HYDRO or HBV differentiable P-RNN backbone and causal CNN",
+    "process_discovery": "DeepDiscover with a conservative NumPy full-sequence implementation"
+  },
+  "software_components": {
+    "scientific_backend": "Python",
+    "neural_backend": "TensorFlow 2.21.0",
+    "visual_interface": "React/TypeScript",
+    "local_service": "FastAPI/Uvicorn"
+  },
+  "release_checks": {
+    "python_test_suite": "passed",
+    "tensorflow_backend_verification": "passed",
+    "deepdiscover_runtime_verification": "passed",
+    "interface_test_suite": "passed",
+    "interface_production_build": "passed"
+  }
+}

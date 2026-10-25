@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydrosoftware"
+version = "1.0.0"
+description = "Scientific core for an extensible visual hydrological modelling platform."
+requires-python = ">=3.10,<3.14"
+license = "Apache-2.0"
+dependencies = [
+    "numpy>=1.26",
+    "tensorflow==2.21.0",
+    "pydantic>=2.8,<3",
+    "PyYAML>=6,<7",
+]
+
+[project.optional-dependencies]
+service = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
+]
+dev = [
+    "httpx>=0.27,<1",
+    "httpx2>=2,<3",
+]
+visualization = [
+    "matplotlib>=3.8,<4",
+]
+
+[project.scripts]
+hydrosoftware-api = "hydrosoftware.service.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,87 @@
+schema_version: "1.18"
+experiment_id: synthetic-exp-hydro
+name: Synthetic EXP-HYDRO calibration
+description: End-to-end held-out calibration example for HydroSoftware.
+
+data:
+  kind: csv
+  path: examples/data/synthetic_exp_hydro.csv
+  delimiter: ","
+  encoding: utf-8-sig
+  expected_sha256: aa07157677e9bdd4a8979d6cb3bc2822510dc969679983c1ea7e25c682c04c7c
+  columns:
+    timestamp: date
+    precipitation: precipitation
+    temperature: temperature
+    potential_evapotranspiration: pet
+    streamflow: streamflow
+  processing:
+    units:
+      precipitation: mm/day
+      temperature: degC
+      potential_evapotranspiration: mm/day
+      streamflow: mm/day
+      basin_area_km2: null
+    missing:
+      precipitation: error
+      temperature: error
+      potential_evapotranspiration: error
+      streamflow: exclude
+      maximum_interpolation_gap: 3
+      text_tokens: ["", "NA", "N/A", "NaN", "null"]
+      numeric_sentinels: []
+    negative:
+      precipitation: error
+      potential_evapotranspiration: error
+      streamflow: keep
+    timestamps:
+      expected_step: daily
+      require_timestamp: false
+
+model:
+  model_id: exp_hydro.mass_conservative.v1
+  snow:
+    module_id: snow.degree_day.hard.v1
+    snowfall_temperature: 0.0
+    melt_temperature: 0.0
+    degree_day_factor: 2.0
+    calibration:
+      snowfall_temperature:
+        mode: fixed
+        lower_bound: -3.0
+        upper_bound: 0.0
+      melt_temperature:
+        mode: fixed
+        lower_bound: 0.0
+        upper_bound: 3.0
+      degree_day_factor:
+        mode: fixed
+        lower_bound: 0.0
+        upper_bound: 5.0
+  initial_state: [0.0, 300.0]
+  substeps: 4
+
+task:
+  task_type: calibration
+  period:
+    protocol: calibration_validation_test
+    start_index: 0
+    calibration_end_index: 15
+    validation_end_index: 20
+    test_end_index: 40
+    warmup_steps: 5
+  objective:
+    objective_id: nash_sutcliffe_efficiency
+  search:
+    algorithm_id: differential_evolution.rand1bin.v1
+    generations: 2
+    population_size: 8
+    mutation_factor: 0.8
+    crossover_probability: 0.9
+    seed: 2026
+    include_defaults: true
+    continue_on_candidate_error: true
+
+metadata:
+  data_origin: deterministic synthetic example
+  intended_use: integration testing only
