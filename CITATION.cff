@@ -6,4 +6,6 @@ authors:
   - family-names: "Adombi"
     given-names: "A. V. D. P."
 version: 1.0.0
+date-released: "2026-10-25"
+repository-code: "https://github.com/avadombi/HydroSoftware"
 license: Apache-2.0
