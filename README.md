@@ -244,7 +244,7 @@ Completed runs retain the experiment configuration, fitted parameters or model
 weights, transformations, predictions, performance metrics, and model-specific
 states and fluxes when available. Numerical checks are applied according to the
 properties of each model. A check that is not scientifically meaningful for a
-particular formulation is reported as not applicable rather than interpreted as
+particular formulation is reported as not applicable instead of being interpreted as
 successful.
 
 ## Citation
